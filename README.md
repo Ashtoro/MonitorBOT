@@ -47,6 +47,7 @@
 - 📅 **Дневной отчёт** — сводка в заданное время (по умолчанию 22:00).
 - 🏆 **Топ процессов** по памяти.
 - 🎛 **Инлайн-кнопки** — всё управление в один тап.
+- 🌐 **Два языка** — русский и английский. Выбор через `/lang` или кнопку «🌐 Язык» (запоминается для каждого пользователя). Алерты и отчёты приходят на языке получателя.
 - 🔐 **Авторизация владельца** по паролю — чужой не увидит метрики.
 
 ---
@@ -295,6 +296,7 @@ systemctl stop monitor-bot          # остановить
 | `/report` | Дневной отчёт (сейчас) |
 | `/top` | Топ-5 процессов по памяти |
 | `/alerts` | Текущие пороги алертов |
+| `/lang` | Выбрать язык бота (русский / English) |
 | `/pause` | Приостановить алерты |
 | `/resume` | Возобновить алерты |
 
@@ -308,9 +310,10 @@ systemctl stop monitor-bot          # остановить
 🗂 Диск | ⏱ Аптайм
 🌐 Сеть | 🗄 Диск I/O | 🔌 Соед
 🏆 Топ | 📊 Отчёт | 🔔 Алерты
+🌐 Язык
 ```
 
-Тап по кнопке сразу показывает запрошенную метрику — команды вводить не нужно.
+Тап по кнопке сразу показывает запрошенную метрику — команды вводить не нужно. Кнопка «🌐 Язык» открывает выбор русского или английского.
 
 ---
 
@@ -401,6 +404,7 @@ systemctl stop monitor-bot          # остановить
 - 📅 **Daily report** — scheduled summary (default 22:00).
 - 🏆 **Top processes** by memory.
 - 🎛 **Inline buttons** — one-tap control.
+- 🌐 **Two languages** — Russian and English. Choose via `/lang` or the "🌐 Language" button (remembered per user). Alerts and reports arrive in each recipient's language.
 - 🔐 **Owner authorization** — strangers can't see your metrics.
 
 ---
@@ -648,6 +652,7 @@ After editing config.json, restart the bot (`systemctl restart monitor-bot` or C
 | `/report` | Daily report (now) |
 | `/top` | Top-5 processes by memory |
 | `/alerts` | Current alert thresholds |
+| `/lang` | Choose bot language (Russian / English) |
 | `/pause` | Pause alerts |
 | `/resume` | Resume alerts |
 
@@ -661,9 +666,10 @@ After `/start` (or under any metric message):
 🗂 Disk | ⏱ Uptime
 🌐 Net | 🗄 Disk I/O | 🔌 Conn
 🏆 Top | 📊 Report | 🔔 Alerts
+🌐 Language
 ```
 
-Tap a button to instantly see that metric — no typing needed.
+Tap a button to instantly see that metric — no typing needed. The "🌐 Language" button opens the English/Russian switcher.
 
 ---
 
