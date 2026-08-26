@@ -12,13 +12,21 @@ import time
 from datetime import date, datetime, time as dtime
 
 import psutil
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    Update,
+)
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
+    filters,
+    MessageHandler,
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -121,6 +129,7 @@ _MESSAGES = {
         "status_usage": "Использование",
         "start_ram": "🧠 <b>RAM</b>",
         "start_ok": "👋 <b>VPS Monitor</b> активен. Выберите действие кнопками или используйте команды.",
+        "quick_hint": "⬇️ Быстрые кнопки внизу — просто тапните, не нужно писать команды.",
         "start_noauth": "👋 Это <b>VPS Monitor</b>.\nДоступ ограничен. Введите пароль владельца:\n"
                         "<code>/auth ПАРОЛЬ</code>\n\nВаш chat_id: <code>{chat}</code>",
         "already_auth": "Вы уже авторизованы ✅",
@@ -191,6 +200,7 @@ _MESSAGES = {
         "start_noauth": "👋 This is <b>VPS Monitor</b>.\nAccess is restricted. Enter the owner password:\n"
                         "<code>/auth PASSWORD</code>\n\nYour chat_id: <code>{chat}</code>",
         "start_ok": "👋 <b>VPS Monitor</b> is active. Use the buttons or commands.",
+        "quick_hint": "⬇️ Quick buttons below — just tap, no need to type commands.",
         "already_auth": "You are already authorized ✅",
         "auth_need_pass": "Provide the password: /auth <password>",
         "auth_success": "✅ Authorization successful! You are the owner.",
@@ -420,6 +430,35 @@ def lang_keyboard():
     ])
 
 
+def quick_keyboard(lang="ru"):
+    """Быстрые reply-кнопки внизу поля ввода."""
+    k = KeyboardButton
+    L = _MESSAGES[lang]
+    return ReplyKeyboardMarkup(
+        [
+            [k(L["btn_status"])],
+            [k(L["btn_cpu"]), k(L["btn_ram"]), k(L["btn_disk"])],
+            [k(L["btn_net"]), k(L["btn_io"]), k(L["btn_uptime"])],
+            [k(L["btn_top"]), k(L["btn_report"]), k(L["btn_alerts"])],
+            [k(L["btn_lang"])],
+        ],
+        resize_keyboard=True,
+    )
+
+
+_QUICK_ACTIONS = ("status", "cpu", "ram", "disk", "uptime", "net", "io", "top", "report", "alerts")
+
+
+def resolve_quick_action(lang, text):
+    """Сопоставить текст кнопки (в любом из языков) с действием."""
+    for lg in LANGUAGES:
+        L = _MESSAGES[lg]
+        for a in _QUICK_ACTIONS:
+            if text == L.get("btn_" + a):
+                return a
+    return None
+
+
 # ─────────────────────────────── рассылки и алерты ───────────────────────────────
 
 async def _broadcast(builder):
@@ -533,6 +572,11 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat.id
     text = _fmt(lang, "start_ok") if chat in _authorized else _fmt(lang, "start_noauth", chat=chat)
     await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=main_keyboard(lang))
+    # закрепляем быстрые кнопки внизу поля ввода
+    await update.message.reply_text(
+        _fmt(lang, "quick_hint") if chat in _authorized else _fmt(lang, "quick_hint"),
+        reply_markup=quick_keyboard(lang),
+    )
 
 
 async def cmd_auth(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -819,6 +863,25 @@ async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=main_keyboard(lang))
 
 
+async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка тапов по быстрым reply-кнопкам и любого текста не-команды."""
+    if not is_auth(update):
+        return await cmd_start(update, context)
+    lang = _ln(update)
+    text = update.message.text
+
+    action = resolve_quick_action(lang, text)
+    if action:
+        resp = await _metric_reply(lang, action)
+        await update.message.reply_text(resp, parse_mode=ParseMode.HTML,
+                                        reply_markup=main_keyboard(lang))
+        return
+    if text == _MESSAGES[lang]["btn_lang"]:
+        await update.message.reply_text(_fmt(lang, "lang_title"), reply_markup=lang_keyboard())
+        return
+    await update.message.reply_text(_fmt(lang, "unknown"))
+
+
 # ─────────────────────────────── запуск ───────────────────────────────
 
 def main():
@@ -854,6 +917,7 @@ def main():
         app.add_handler(CommandHandler(name, fn))
 
     app.add_handler(CallbackQueryHandler(on_callback))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
 
     async def _after_start(_app):
         await send_reboot_alert()

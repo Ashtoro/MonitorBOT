@@ -47,6 +47,7 @@
 - 📅 **Дневной отчёт** — сводка в заданное время (по умолчанию 22:00).
 - 🏆 **Топ процессов** по памяти.
 - 🎛 **Инлайн-кнопки** — всё управление в один тап.
+- ⚡ **Быстрые кнопки** внизу поля ввода — тап вместо ввода команды (появляются после `/start`).
 - 🌐 **Два языка** — русский и английский. Выбор через `/lang` или кнопку «🌐 Язык» (запоминается для каждого пользователя). Алерты и отчёты приходят на языке получателя.
 - 🔐 **Авторизация владельца** по паролю — чужой не увидит метрики.
 
@@ -315,6 +316,20 @@ systemctl stop monitor-bot          # остановить
 
 Тап по кнопке сразу показывает запрошенную метрику — команды вводить не нужно. Кнопка «🌐 Язык» открывает выбор русского или английского.
 
+### Быстрые кнопки (внизу поля ввода)
+
+После `/start` под полем ввода сообщения закрепляются быстрые кнопки — достаточно тапнуть, вместо того чтобы писать команду:
+
+```
+🖥 Статус
+🗠 CPU | 🧠 RAM | 🗂 Диск
+🌐 Сеть | 🗄 Диск I/O | ⏱ Аптайм
+🏆 Топ | 📊 Отчёт | 🔔 Алерты
+🌐 Язык
+```
+
+Кнопки на языке пользователя и тоже открывают все метрики, отчёты и выбор языка.
+
 ---
 
 ## Как работает защита доступа
@@ -404,6 +419,7 @@ systemctl stop monitor-bot          # остановить
 - 📅 **Daily report** — scheduled summary (default 22:00).
 - 🏆 **Top processes** by memory.
 - 🎛 **Inline buttons** — one-tap control.
+- ⚡ **Quick buttons** below the input field — tap instead of typing a command (shown after `/start`).
 - 🌐 **Two languages** — Russian and English. Choose via `/lang` or the "🌐 Language" button (remembered per user). Alerts and reports arrive in each recipient's language.
 - 🔐 **Owner authorization** — strangers can't see your metrics.
 
@@ -670,6 +686,20 @@ After `/start` (or under any metric message):
 ```
 
 Tap a button to instantly see that metric — no typing needed. The "🌐 Language" button opens the English/Russian switcher.
+
+### Quick buttons (below the input field)
+
+After `/start`, quick buttons are pinned under the input field — just tap instead of typing a command:
+
+```
+🖥 Status
+🗠 CPU | 🧠 RAM | 🗂 Disk
+🌐 Net | 🗄 Disk I/O | ⏱ Uptime
+🏆 Top | 📊 Report | 🔔 Alerts
+🌐 Language
+```
+
+The buttons use the user's language and also open all metrics, reports and the language picker.
 
 ---
 
