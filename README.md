@@ -48,6 +48,7 @@
 - 🏆 **Топ процессов** по памяти.
 - 🎛 **Инлайн-кнопки** — всё управление в один тап.
 - ⚡ **Быстрые кнопки** внизу поля ввода — тап вместо ввода команды (появляются после `/start`).
+- 🖧 **Несколько серверов** — бот мониторит свой сервер + любое количество удалённых по SSH (лёгкий python3-агент, ничего устанавливать не нужно). Сводка всех серверов: `/servers`; метрики конкретного сервера: `/status srv2`, `/cpu srv2` и т.д.
 - 🌐 **Два языка** — русский и английский. Выбор через `/lang` или кнопку «🌐 Язык» (запоминается для каждого пользователя). Алерты и отчёты приходят на языке получателя.
 - 🔐 **Авторизация владельца** по паролю — чужой не увидит метрики.
 
@@ -235,6 +236,36 @@ systemctl stop monitor-bot          # остановить
 
 ---
 
+## Мониторинг нескольких серверов
+
+Бот всегда мониторит **свой** (локальный) сервер. Дополнительные серверы добавляются в `config.json` — бот собирает их метрики по SSH, запуская лёгкий python3-агент (только stdlib, ничего устанавливать на удалённый сервер не нужно):
+
+```json
+{
+  "servers": [
+    { "name": "srv2", "host": "203.0.113.10", "port": 22,
+      "username": "root", "password": "ПАРОЛЬ" },
+    { "name": "srv3", "host": "203.0.113.20", "port": 22,
+      "username": "root", "key_file": "/root/.ssh/id_ed25519" }
+  ]
+}
+```
+
+| Поле | Описание |
+|---|---|
+| `name` | Имя сервера в боте (для команд и алертов) |
+| `host` | IP или домен |
+| `port` | SSH-порт (по умолчанию 22) |
+| `username` | Пользователь SSH (по умолчанию root) |
+| `password` | Пароль SSH (или `key_file` — путь к приватному ключу) |
+| `key_file` | Альтернатива паролю: авторизация по ключу |
+
+- Сводка: `/servers` (или кнопка 🖧) — все серверы с мини-метриками и кнопками перехода.
+- Метрики конкретного сервера: `/status srv2`, `/cpu srv2`, `/ram srv2`, `/net srv2` и т.д.
+- Без аргумента команды показывают локальный сервер.
+- Алерты (CPU/RAM/диск/load, «сервер недоступен», «перезагрузился») работают по каждому серверу отдельно, дневной отчёт включает все серверы.
+- Требуется: python3 на удалённом сервере (есть по умолчанию в Ubuntu/Debian) и открытый SSH-порт от сервера с ботом.
+
 ## Конфигурация (config.json)
 
 При запуске бот создаёт `config.json` рядом с скриптом. Все настройки в нём.
@@ -287,7 +318,8 @@ systemctl stop monitor-bot          # остановить
 | `/start` | Главное меню и клавиатура с кнопками |
 | `/menu`, `/help` | Показать меню и список команд |
 | `/auth <пароль>` | Авторизоваться владельцем |
-| `/status` | Полный статус сервера |
+| `/status` | Полный статус сервера (`/status srv2` — другого сервера) |
+| `/servers` | Сводка всех серверов + кнопки перехода |
 | `/cpu` | Загрузка CPU + load average |
 | `/ram` | Использование памяти |
 | `/disk` | Заполнение диска |
@@ -420,6 +452,7 @@ systemctl stop monitor-bot          # остановить
 - 🏆 **Top processes** by memory.
 - 🎛 **Inline buttons** — one-tap control.
 - ⚡ **Quick buttons** below the input field — tap instead of typing a command (shown after `/start`).
+- 🖧 **Multiple servers** — the bot monitors its own server plus any number of remote ones over SSH (a lightweight python3 agent, nothing to install). Overview: `/servers`; per-server metrics: `/status srv2`, `/cpu srv2`, etc.
 - 🌐 **Two languages** — Russian and English. Choose via `/lang` or the "🌐 Language" button (remembered per user). Alerts and reports arrive in each recipient's language.
 - 🔐 **Owner authorization** — strangers can't see your metrics.
 
@@ -606,6 +639,36 @@ Thanks to `Restart=always`, systemd will bring the bot back if it crashes.
 
 ---
 
+## Multi-server monitoring
+
+The bot always monitors **its own** (local) server. Additional servers are added to `config.json` — the bot collects their metrics over SSH by running a lightweight python3 agent (stdlib only, nothing to install on the remote server):
+
+```json
+{
+  "servers": [
+    { "name": "srv2", "host": "203.0.113.10", "port": 22,
+      "username": "root", "password": "PASSWORD" },
+    { "name": "srv3", "host": "203.0.113.20", "port": 22,
+      "username": "root", "key_file": "/root/.ssh/id_ed25519" }
+  ]
+}
+```
+
+| Field | Description |
+|---|---|
+| `name` | Server name used in commands and alerts |
+| `host` | IP or domain |
+| `port` | SSH port (default 22) |
+| `username` | SSH user (default root) |
+| `password` | SSH password (or `key_file` — path to a private key) |
+| `key_file` | Alternative to password: key-based auth |
+
+- Overview: `/servers` (or the 🖧 button) — all servers with mini-metrics and jump buttons.
+- Per-server metrics: `/status srv2`, `/cpu srv2`, `/ram srv2`, `/net srv2`, etc.
+- Commands without an argument show the local server.
+- Alerts (CPU/RAM/disk/load, "server unreachable", "rebooted") work per server; the daily report includes all servers.
+- Requires: python3 on the remote server (present by default on Ubuntu/Debian) and an open SSH port from the bot's server.
+
 ## Configuration (config.json)
 
 On first run the bot creates `config.json` next to the script. All settings live here.
@@ -658,7 +721,8 @@ After editing config.json, restart the bot (`systemctl restart monitor-bot` or C
 | `/start` | Main menu + inline keyboard |
 | `/menu`, `/help` | Show menu & command list |
 | `/auth <password>` | Authorize as owner |
-| `/status` | Full server status |
+| `/status` | Full server status (`/status srv2` — another server) |
+| `/servers` | All-servers overview + jump buttons |
 | `/cpu` | CPU load + load average |
 | `/ram` | Memory usage |
 | `/disk` | Disk usage |
